@@ -1,0 +1,34 @@
+#gcloud builds submit --config cloudbuild.yaml .
+
+steps:
+
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', 'gcr.io/adroit-terminus-239208/flask_mysql:v5', '.' ]
+  # allow_failure: true
+
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/adroit-terminus-239208/flask_mysql:v5']
+  # allow_failure: true
+
+# - name: 'gcr.io/cloud-builders/kubectl'
+#   args: ['set', 'image', 'deployment/flask-app', 'my-container=gcr.io/adroit-terminus-239208/flask_auto:v2']
+#   env:
+#   - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+#   - 'CLOUDSDK_CONTAINER_CLUSTER=flask-cluster'
+
+# This step deploys the new version of our container image
+# in the hello-cloudbuild Kubernetes Engine cluster.
+- name: 'gcr.io/cloud-builders/kubectl'
+  id: Deploy
+  args:
+  - 'apply'
+  - '-f'
+  - 'db-pod.yaml'
+  env:
+  - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=flask-cluster'
+
+images:
+- 'gcr.io/adroit-terminus-239208/flask_mysql:v5'
+
+
